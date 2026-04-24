@@ -1,49 +1,53 @@
 local Lighting = game:GetService("Lighting")
 local Terrain = workspace:FindFirstChildOfClass("Terrain")
 
-Lighting.GlobalShadows = false
-Lighting.FogEnd = 9e9
-Lighting.ShadowSoftness = 0
-Lighting.ClockTime = 12
+pcall(function()
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 9e9
+    Lighting.ShadowSoftness = 0
+    Lighting.ClockTime = 14
+    Lighting.Brightness = 2
 
-if Terrain then
-    pcall(function() Terrain.WaterWaveSize = 0 end)
-    pcall(function() Terrain.WaterWaveSpeed = 0 end)
-    pcall(function() Terrain.WaterReflectance = 0 end)
-    pcall(function() Terrain.WaterTransparency = 1 end)
-    pcall(function() Terrain.Decoration = false end)
-end
-
-for _, obj in pairs(Lighting:GetChildren()) do
-    if obj:IsA("PostEffect") or obj:IsA("BlurEffect") or obj:IsA("SunRaysEffect") or obj:IsA("ColorCorrectionEffect") or obj:IsA("BloomEffect") or obj:IsA("DepthOfFieldEffect") then
-        pcall(function() obj.Enabled = false end)
+    if Terrain then
+        Terrain.WaterWaveSize = 0
+        Terrain.WaterWaveSpeed = 0
+        Terrain.WaterReflectance = 0
+        Terrain.WaterTransparency = 1
+        Terrain.Decoration = false
     end
-end
 
-for _, obj in pairs(workspace:GetDescendants()) do
-    pcall(function()
-        if obj:IsA("BasePart") or obj:IsA("MeshPart") then
-            obj.Material = Enum.Material.SmoothPlastic
-            obj.Reflectance = 0
-            obj.CastShadow = false
-        elseif obj:IsA("Decal") or obj:IsA("Texture") then
-            obj.Transparency = 1
-        elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Sparkles") or obj:IsA("Smoke") or obj:IsA("Fire") then
-            obj.Enabled = false
-        end
-    end)
-end
+    local WorkspaceDescendants = workspace:GetDescendants()
+    for Index = 1, #WorkspaceDescendants do
+        local Object = WorkspaceDescendants[Index]
+        pcall(function()
+            if Object:IsA("BasePart") or Object:IsA("MeshPart") or Object:IsA("UnionOperation") or Object:IsA("CornerWedgePart") or Object:IsA("TrussPart") then
+                Object.Material = Enum.Material.SmoothPlastic
+                Object.Reflectance = 0
+                Object.CastShadow = false
+            elseif Object:IsA("Decal") or Object:IsA("Texture") then
+                Object.Transparency = 1
+            elseif Object:IsA("ParticleEmitter") or Object:IsA("Trail") or Object:IsA("Sparkles") or Object:IsA("Smoke") or Object:IsA("Fire") or Object:IsA("SpotLight") then
+                Object.Enabled = false
+            elseif Object:IsA("Explosion") then
+                Object.BlastPressure = 1
+                Object.BlastRadius = 1
+            elseif Object:IsA("PostEffect") or Object:IsA("BlurEffect") or Object:IsA("SunRaysEffect") or Object:IsA("ColorCorrectionEffect") or Object:IsA("BloomEffect") or Object:IsA("DepthOfFieldEffect") then
+                Object.Enabled = false
+            end
+        end)
+    end
+end)
 
-game.DescendantAdded:Connect(function(obj)
+game.DescendantAdded:Connect(function(Object)
     pcall(function()
-        if obj:IsA("BasePart") or obj:IsA("MeshPart") then
-            obj.Material = Enum.Material.SmoothPlastic
-            obj.Reflectance = 0
-            obj.CastShadow = false
-        elseif obj:IsA("Decal") or obj:IsA("Texture") then
-            obj.Transparency = 1
-        elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Sparkles") or obj:IsA("Smoke") or obj:IsA("Fire") then
-            obj.Enabled = false
+        if Object:IsA("BasePart") or Object:IsA("MeshPart") then
+            Object.Material = Enum.Material.SmoothPlastic
+            Object.Reflectance = 0
+            Object.CastShadow = false
+        elseif Object:IsA("Decal") or Object:IsA("Texture") then
+            Object.Transparency = 1
+        elseif Object:IsA("ParticleEmitter") or Object:IsA("Trail") or Object:IsA("Sparkles") or Object:IsA("Smoke") or Object:IsA("Fire") then
+            Object.Enabled = false
         end
     end)
 end)
@@ -134,6 +138,10 @@ local State = "Idle"
 local TimeForGenerator = 0
 local AutoHighlightKillerCamera = false
 local ParryDistance = 22
+local AntiConfusion = false
+
+local ActiveKillerAimbot = false
+local AimbotTargetPlayer = nil
 
 local oldNewIndex
 oldNewIndex = hookmetamethod(game, "__newindex", newcclosure(function(t, k, v)
@@ -256,6 +264,54 @@ local function TweenTo(character, cf)
 	local tween = TweenService:Create(root, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = cf})
 	tween:Play()
 	tween.Completed:Wait()
+end
+
+local function GetNearestSurvivor()
+    local StatusTarget, ResultTarget = pcall(function()
+        if AimbotTargetPlayer and AimbotTargetPlayer.Parent and AimbotTargetPlayer.Parent.Parent == workspace:FindFirstChild("PLAYERS") and workspace.PLAYERS:FindFirstChild("ALIVE") then
+            local TargetHumanoid = AimbotTargetPlayer.Parent:FindFirstChild("Humanoid")
+            if TargetHumanoid and TargetHumanoid.Health > 0 then
+                return true
+            end
+        end
+        return false
+    end)
+    
+    if StatusTarget and ResultTarget == true then
+        return AimbotTargetPlayer
+    end
+
+    pcall(function()
+        if AimbotTargetPlayer and AimbotTargetPlayer.Parent then
+            AimbotTargetPlayer.Size = Vector3.new(2, 2, 1)
+        end
+    end)
+
+    AimbotTargetPlayer = nil
+    local MinimumMagnitude = math.huge
+
+    pcall(function()
+        local AliveFolder = workspace:FindFirstChild("PLAYERS") and workspace.PLAYERS:FindFirstChild("ALIVE")
+        if AliveFolder then
+            local LocalCharacter = LocalPlayer.Character
+            if LocalCharacter and LocalCharacter:FindFirstChild("HumanoidRootPart") then
+                for _, SurvivorInstance in ipairs(AliveFolder:GetChildren()) do
+                    if SurvivorInstance ~= LocalCharacter then
+                        local SurvivorHumanoid = SurvivorInstance:FindFirstChild("Humanoid")
+                        local SurvivorRootPart = SurvivorInstance:FindFirstChild("HumanoidRootPart")
+                        if SurvivorHumanoid and SurvivorRootPart and SurvivorHumanoid.Health > 0 then
+                            local CurrentMagnitude = (LocalCharacter.HumanoidRootPart.Position - SurvivorRootPart.Position).Magnitude
+                            if CurrentMagnitude < MinimumMagnitude then
+                                MinimumMagnitude = CurrentMagnitude
+                                AimbotTargetPlayer = SurvivorRootPart
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+    return AimbotTargetPlayer
 end
 
 SoundService.DescendantAdded:Connect(function(child)
@@ -497,6 +553,29 @@ RunService.RenderStepped:Connect(function()
 			end
 		end
 	end
+
+    pcall(function()
+        if not ActiveKillerAimbot then
+            pcall(function()
+                if AimbotTargetPlayer and AimbotTargetPlayer.Parent then
+                    AimbotTargetPlayer.Size = Vector3.new(2, 2, 1)
+                    AimbotTargetPlayer = nil
+                end
+            end)
+            return
+        end
+        local CurrentTarget = GetNearestSurvivor()
+        if CurrentTarget then
+            local CurrentLocalCharacter = LocalPlayer.Character
+            if CurrentLocalCharacter and CurrentLocalCharacter:FindFirstChild("Humanoid") and CurrentLocalCharacter.Humanoid.Health > 0 then
+                local AimCFrame = CFrame.new(Camera.CFrame.Position, CurrentTarget.Position)
+                Camera.CFrame = Camera.CFrame:Lerp(AimCFrame, 0.08)
+                CurrentTarget.Size = Vector3.new(25, 25, 25)
+                CurrentTarget.CanCollide = false
+                CurrentTarget.Transparency = 1
+            end
+        end
+    end)
 end)
 
 local TimeAutoHighlight = 0.1
@@ -717,6 +796,14 @@ EspGroup:AddToggle("EspWireEyesToggle", {
 			end
 		end
 	end
+})
+
+MainGroup:AddToggle("ToggleKillerAimbot", {
+    Text = "Smooth Aimbot + Hitbox Expander",
+    Default = false,
+    Callback = function(Value)
+        ActiveKillerAimbot = Value
+    end
 })
 
 MainGroup:AddButton({
