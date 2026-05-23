@@ -1,5 +1,5 @@
-local GoatKey = "Goathubrelesefirstgameever"
-local KeyURL = "https://discord.gg/scJjpcVNZb"
+local HookKeys = {"LetsHook77", "letshook77"}
+local KeyURL = "https://discord.gg/DkDaEpxV2v"
 
 local TweenService = game:GetService("TweenService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -18,7 +18,7 @@ else
 end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "GoatHub_Ultimate_Auth"
+ScreenGui.Name = "HookHub_Ultimate_Auth"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = TargetParent
@@ -31,7 +31,7 @@ local function GetGameName()
 end
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Name = "GoatMain"
+MainFrame.Name = "HookMain"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -66,7 +66,7 @@ Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0, 0, 0.08, 0)
 Title.Size = UDim2.new(1, 0, 0, 40)
 Title.Font = Enum.Font.GothamBlack
-Title.Text = "GOAT HUB"
+Title.Text = "Hook HUB"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 28
 Title.TextTransparency = 1
@@ -139,7 +139,7 @@ GetKeyBtn.TextTransparency = 1
 Instance.new("UICorner", GetKeyBtn).CornerRadius = UDim.new(0, 8)
 
 local LoadingFrame = Instance.new("Frame")
-LoadingFrame.Name = "GoatLoading"
+LoadingFrame.Name = "HookLoading"
 LoadingFrame.Parent = ScreenGui
 LoadingFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
 LoadingFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -284,16 +284,16 @@ local function StartExecution()
     TweenService:Create(ProgressBar, TweenInfo.new(1.5), {Size = UDim2.new(1, 0, 1, 0)}):Play()
     task.wait(1.6)
 
-    if TargetPlace == 124473577469410 then
+    if TargetPlace == 136801880565837 then
         local ExecSuccess, ExecError = pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/kingthekid074-hue/New-loader/refs/heads/main/bealuckyblock.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/kingthekid074-hue/New-loader/refs/heads/main/flick.lua"))()
         end)
         
         if ExecSuccess then
-            LoadingText.Text = "execute Successful!"
+            LoadingText.Text = "script Loaded Successfully!"
             LoadingText.TextColor3 = Color3.fromRGB(100, 255, 100)
         else
-            LoadingText.Text = "execute Failure"
+            LoadingText.Text = "Script Failed to Load"
             LoadingText.TextColor3 = Color3.fromRGB(255, 100, 100)
         end
         task.wait(1.5)
@@ -315,20 +315,20 @@ end
 
 KeyInput:GetPropertyChangedSignal("Text"):Connect(function()
     local InputText = KeyInput.Text
-    if InputText == GoatKey then
+    if InputText == HookKey then
         StatusLabel.Text = "Key Verified!"
         StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
         KeyInput.TextEditable = false
         TweenService:Create(InputStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(100, 255, 100)}):Play()
         task.wait(0.4)
         StartExecution()
-    elseif #InputText > 0 and InputText ~= GoatKey then
+    elseif #InputText > 0 and InputText ~= HookKey then
         StatusLabel.Text = "Validating..."
         StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
         TweenService:Create(InputStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(80, 80, 100)}):Play()
         task.delay(0.4, function()
-            if KeyInput.Text ~= GoatKey and #KeyInput.Text > 0 then
-                StatusLabel.Text = "Invalid Authorization Key"
+            if KeyInput.Text ~= HookKey and #KeyInput.Text > 0 then
+                StatusLabel.Text = "Invalid Key"
                 StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
                 TweenService:Create(InputStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(255, 100, 100)}):Play()
             end
